@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.prova.cartellaesattoriale.model.CartellaEsattoriale;
-import it.prova.cartellaesattoriale.model.Contribuente;
 import it.prova.cartellaesattoriale.model.Stato;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
