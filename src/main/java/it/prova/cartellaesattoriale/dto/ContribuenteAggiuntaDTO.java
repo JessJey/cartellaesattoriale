@@ -36,11 +36,11 @@ public class ContribuenteAggiuntaDTO {
 	private Set<CartellaEsattorialeDTO> cartelleEsattoriali = new HashSet<CartellaEsattorialeDTO>(0);
 
 	private boolean daAttenzionare;
-	
+
 	private int inContenzioso;
 	private int conclusoEPagato;
 	private int importoCartelle;
-	
+
 	public ContribuenteAggiuntaDTO() {
 		super();
 	}
@@ -57,8 +57,8 @@ public class ContribuenteAggiuntaDTO {
 		this.cartelleEsattoriali = cartelleEsattoriali;
 	}
 
-	public ContribuenteAggiuntaDTO(String nome, String cognome, Date dataDiNascita, String codicefiscale, String indirizzo,
-			Set<CartellaEsattorialeDTO> cartelleEsattoriali) {
+	public ContribuenteAggiuntaDTO(String nome, String cognome, Date dataDiNascita, String codicefiscale,
+			String indirizzo, Set<CartellaEsattorialeDTO> cartelleEsattoriali) {
 		super();
 		this.nome = nome;
 		this.cognome = cognome;
@@ -68,7 +68,8 @@ public class ContribuenteAggiuntaDTO {
 		this.cartelleEsattoriali = cartelleEsattoriali;
 	}
 
-	public ContribuenteAggiuntaDTO(Long id, String nome, String cognome, Date dataDiNascita, String codicefiscale, String indirizzo) {
+	public ContribuenteAggiuntaDTO(Long id, String nome, String cognome, Date dataDiNascita, String codicefiscale,
+			String indirizzo) {
 		super();
 		this.id = id;
 		this.nome = nome;
@@ -76,6 +77,22 @@ public class ContribuenteAggiuntaDTO {
 		this.dataDiNascita = dataDiNascita;
 		this.codicefiscale = codicefiscale;
 		this.indirizzo = indirizzo;
+	}
+
+	public ContribuenteAggiuntaDTO(String nome, String cognome, Date dataDiNascita, String codicefiscale,
+			String indirizzo, Set<CartellaEsattorialeDTO> cartelleEsattoriali, boolean daAttenzionare,
+			int inContenzioso, int conclusoEPagato, int importoCartelle) {
+		super();
+		this.nome = nome;
+		this.cognome = cognome;
+		this.dataDiNascita = dataDiNascita;
+		this.codicefiscale = codicefiscale;
+		this.indirizzo = indirizzo;
+		this.cartelleEsattoriali = cartelleEsattoriali;
+		this.daAttenzionare = daAttenzionare;
+		this.inContenzioso = inContenzioso;
+		this.conclusoEPagato = conclusoEPagato;
+		this.importoCartelle = importoCartelle;
 	}
 
 	public Long getId() {
@@ -133,7 +150,7 @@ public class ContribuenteAggiuntaDTO {
 	public void setCartelleEsattoriali(Set<CartellaEsattorialeDTO> cartelleEsattoriali) {
 		this.cartelleEsattoriali = cartelleEsattoriali;
 	}
-	
+
 	public boolean isDaAttenzionare() {
 		return daAttenzionare;
 	}
@@ -141,7 +158,6 @@ public class ContribuenteAggiuntaDTO {
 	public void setDaAttenzionare(boolean daAttenzionare) {
 		this.daAttenzionare = daAttenzionare;
 	}
-	
 
 	public int getInContenzioso() {
 		return inContenzioso;
@@ -168,22 +184,29 @@ public class ContribuenteAggiuntaDTO {
 	}
 
 	public Contribuente buildContribuenteModel() {
-		return new Contribuente(this.id, this.nome, this.cognome, this.dataDiNascita, this.codicefiscale, this.indirizzo);
+		return new Contribuente(this.id, this.nome, this.cognome, this.dataDiNascita, this.codicefiscale,
+				this.indirizzo);
 	}
 
-	public static ContribuenteAggiuntaDTO buildContribuenteDTOFromModel(Contribuente contribuenteModel, boolean includeCartelle) {
-		ContribuenteAggiuntaDTO result = new ContribuenteAggiuntaDTO(contribuenteModel.getId(), contribuenteModel.getNome(), contribuenteModel.getCognome(),
-				 contribuenteModel.getDataDiNascita(), contribuenteModel.getCodicefiscale(), contribuenteModel.getIndirizzo());
-		if(includeCartelle)
-			result.setCartelleEsattoriali(CartellaEsattorialeDTO.createCartellaEsattorialeDTOSetFromModelSet(contribuenteModel.getCartelleEsattoriali(), false));
+	public static ContribuenteAggiuntaDTO buildContribuenteDTOFromModel(Contribuente contribuenteModel,
+			boolean includeCartelle) {
+		ContribuenteAggiuntaDTO result = new ContribuenteAggiuntaDTO(contribuenteModel.getId(),
+				contribuenteModel.getNome(), contribuenteModel.getCognome(), contribuenteModel.getDataDiNascita(),
+				contribuenteModel.getCodicefiscale(), contribuenteModel.getIndirizzo());
+		if (includeCartelle)
+			result.setCartelleEsattoriali(CartellaEsattorialeDTO
+					.createCartellaEsattorialeDTOSetFromModelSet(contribuenteModel.getCartelleEsattoriali(), false));
 		return result;
 	}
 
-	public static List<ContribuenteAggiuntaDTO> createContribuenteDTOListFromModelList(List<Contribuente> modelListInput, boolean includeCartelle) {
+	public static List<ContribuenteAggiuntaDTO> createContribuenteDTOListFromModelList(
+			List<Contribuente> modelListInput, boolean includeCartelle) {
 		return modelListInput.stream().map(contribuenteEntity -> {
-			ContribuenteAggiuntaDTO result = ContribuenteAggiuntaDTO.buildContribuenteDTOFromModel(contribuenteEntity,includeCartelle);
-			if(includeCartelle)
-				result.setCartelleEsattoriali(CartellaEsattorialeDTO.createCartellaEsattorialeDTOSetFromModelSet(contribuenteEntity.getCartelleEsattoriali(), false));
+			ContribuenteAggiuntaDTO result = ContribuenteAggiuntaDTO.buildContribuenteDTOFromModel(contribuenteEntity,
+					includeCartelle);
+			if (includeCartelle)
+				result.setCartelleEsattoriali(CartellaEsattorialeDTO.createCartellaEsattorialeDTOSetFromModelSet(
+						contribuenteEntity.getCartelleEsattoriali(), false));
 			return result;
 		}).collect(Collectors.toList());
 	}
