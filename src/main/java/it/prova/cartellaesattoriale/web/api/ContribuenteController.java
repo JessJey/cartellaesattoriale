@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import it.prova.cartellaesattoriale.dto.CartellaEsattorialeDTO;
 import it.prova.cartellaesattoriale.dto.ContribuenteAggiuntaDTO;
 import it.prova.cartellaesattoriale.dto.ContribuenteDTO;
+import it.prova.cartellaesattoriale.dto.ContribuenteDaAttenzionareDTO;
 import it.prova.cartellaesattoriale.model.Contribuente;
 import it.prova.cartellaesattoriale.model.Stato;
 import it.prova.cartellaesattoriale.service.contribuente.ContribuenteService;
@@ -101,15 +102,15 @@ public class ContribuenteController {
 	}
 
 	@GetMapping("/verificaContenziosi")
-	public List<ContribuenteAggiuntaDTO> verificaContenziosi() {
+	public List<ContribuenteDaAttenzionareDTO> verificaContenziosi() {
 
 		List<ContribuenteDTO> listaCompleta = ContribuenteDTO
 				.createContribuenteDTOListFromModelList(contribuenteService.listAllElementsEager(), false);
-		List<ContribuenteAggiuntaDTO> contribuenteInContenzioso = ContribuenteAggiuntaDTO
+		List<ContribuenteDaAttenzionareDTO> contribuenteInContenzioso = ContribuenteDaAttenzionareDTO
 				.createContribuenteDTOListFromModelList(contribuenteService.trovaPerStatoCartelle(Stato.IN_CONTENZIOSO),
 						false);
 
-		for (ContribuenteAggiuntaDTO inContenziosoItem : contribuenteInContenzioso) {
+		for (ContribuenteDaAttenzionareDTO inContenziosoItem : contribuenteInContenzioso) {
 			inContenziosoItem.setDaAttenzionare(true);
 		}
 
@@ -119,7 +120,7 @@ public class ContribuenteController {
 			}
 		}
 
-		List<ContribuenteAggiuntaDTO> newList = (List<ContribuenteAggiuntaDTO>) Stream
+		List<ContribuenteDaAttenzionareDTO> newList = (List<ContribuenteDaAttenzionareDTO>) Stream
 				.of(listaCompleta, contribuenteInContenzioso).flatMap(Collection::stream).collect(Collectors.toList());
 
 		return newList;
