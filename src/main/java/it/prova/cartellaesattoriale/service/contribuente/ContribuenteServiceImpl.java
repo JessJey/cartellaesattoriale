@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.prova.cartellaesattoriale.model.Contribuente;
+import it.prova.cartellaesattoriale.model.Stato;
 import it.prova.cartellaesattoriale.repository.contribuente.ContribuenteRepository;
 
 @Service
@@ -63,5 +64,13 @@ public class ContribuenteServiceImpl implements ContribuenteService {
 	public List<Contribuente> findByExample(Contribuente example) {
 		return repository.findByExample(example);
 	}
+
+	@Override
+	@Transactional
+	public List<Contribuente> trovaPerStatoCartelle(Stato stato) {
+		return repository.findAllByCartelleEsattoriali_StatoLike(stato);
+	}
+	
+	
 
 }

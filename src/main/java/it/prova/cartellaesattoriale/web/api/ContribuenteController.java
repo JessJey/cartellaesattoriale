@@ -1,6 +1,12 @@
 package it.prova.cartellaesattoriale.web.api;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.validation.Valid;
 
@@ -16,8 +22,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.prova.cartellaesattoriale.dto.CartellaEsattorialeDTO;
+import it.prova.cartellaesattoriale.dto.ContribuenteAggiuntaDTO;
 import it.prova.cartellaesattoriale.dto.ContribuenteDTO;
 import it.prova.cartellaesattoriale.model.Contribuente;
+import it.prova.cartellaesattoriale.model.Stato;
 import it.prova.cartellaesattoriale.service.contribuente.ContribuenteService;
 import it.prova.cartellaesattoriale.web.api.exception.ContribuenteDeleteException;
 import it.prova.cartellaesattoriale.web.api.exception.ContribuenteNotFoundException;
@@ -29,7 +38,6 @@ public class ContribuenteController {
 
 	@Autowired
 	private ContribuenteService contribuenteService;
-	
 
 	@GetMapping
 	public List<ContribuenteDTO> getAll() {
@@ -37,7 +45,7 @@ public class ContribuenteController {
 		// (probabilmente dovuto alle librerie che serializzano in JSON)
 		return ContribuenteDTO.createContribuenteDTOListFromModelList(contribuenteService.listAllElementsEager(), true);
 	}
-	
+
 	@GetMapping("/{id}")
 	public ContribuenteDTO findById(@PathVariable(value = "id", required = true) long id) {
 		Contribuente contribuente = contribuenteService.caricaSingoloElementoConCartelleEsattoriali(id);
@@ -47,27 +55,29 @@ public class ContribuenteController {
 
 		return ContribuenteDTO.buildContribuenteDTOFromModel(contribuente, true);
 	}
-	
+
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ContribuenteDTO createNew(@Valid @RequestBody ContribuenteDTO contribuenteInput) {
-			if(contribuenteInput.getId() != null) {
-				throw new IdNotNullForInsertException("il campo ID deve essere null");
-			}
-		Contribuente contribuenteInserito = contribuenteService.inserisciNuovo(contribuenteInput.buildContribuenteModel());
+		if (contribuenteInput.getId() != null) {
+			throw new IdNotNullForInsertException("il campo ID deve essere null");
+		}
+		Contribuente contribuenteInserito = contribuenteService
+				.inserisciNuovo(contribuenteInput.buildContribuenteModel());
 		return ContribuenteDTO.buildContribuenteDTOFromModel(contribuenteInserito, false);
 	}
-	
-	@PutMapping("/{id}")
-	public ContribuenteDTO update(@Valid @RequestBody ContribuenteDTO contribuenteInput, @PathVariable(required = true) Long id) {
-		Contribuente regista = contribuenteService.caricaSingoloElemento(id);
 
-		if (regista == null)
+	@PutMapping("/{id}")
+	public ContribuenteDTO update(@Valid @RequestBody ContribuenteDTO contribuenteInput,
+			@PathVariable(required = true) Long id) {
+		Contribuente contri = contribuenteService.caricaSingoloElemento(id);
+
+		if (contri == null)
 			throw new ContribuenteNotFoundException("Contribuente not found con id: " + id);
 
 		contribuenteInput.setId(id);
-		Contribuente registaAggiornato = contribuenteService.aggiorna(contribuenteInput.buildContribuenteModel());
-		return ContribuenteDTO.buildContribuenteDTOFromModel(registaAggiornato, false);
+		Contribuente contrAggiornato = contribuenteService.aggiorna(contribuenteInput.buildContribuenteModel());
+		return ContribuenteDTO.buildContribuenteDTOFromModel(contrAggiornato, false);
 	}
 
 	@DeleteMapping("/{id}")
@@ -77,8 +87,8 @@ public class ContribuenteController {
 
 		if (contribuente == null)
 			throw new ContribuenteNotFoundException("Contribuente not found con id: " + id);
-		
-		if(contribuente.getCartelleEsattoriali().size() != 0)
+
+		if (contribuente.getCartelleEsattoriali().size() != 0)
 			throw new ContribuenteDeleteException("Il regista selezionato ha dei film associati");
 
 		contribuenteService.rimuovi(contribuente);
@@ -86,7 +96,55 @@ public class ContribuenteController {
 
 	@PostMapping("/search")
 	public List<ContribuenteDTO> search(@RequestBody ContribuenteDTO example) {
-		return ContribuenteDTO.createContribuenteDTOListFromModelList(contribuenteService.findByExample(example.buildContribuenteModel()),
-				false);
+		return ContribuenteDTO.createContribuenteDTOListFromModelList(
+				contribuenteService.findByExample(example.buildContribuenteModel()), false);
+	}
+
+	@GetMapping("/verificaContenziosi")
+	public List<ContribuenteAggiuntaDTO> verificaContenziosi() {
+
+		List<ContribuenteDTO> listaCompleta = ContribuenteDTO
+				.createContribuenteDTOListFromModelList(contribuenteService.listAllElementsEager(), false);
+		List<ContribuenteAggiuntaDTO> contribuenteInContenzioso = ContribuenteAggiuntaDTO
+				.createContribuenteDTOListFromModelList(contribuenteService.trovaPerStatoCartelle(Stato.IN_CONTENZIOSO),
+						false);
+
+		for (ContribuenteAggiuntaDTO inContenziosoItem : contribuenteInContenzioso) {
+			inContenziosoItem.setDaAttenzionare(true);
+		}
+
+		for (int i = 0; i < contribuenteInContenzioso.size(); i++) {
+			if (listaCompleta.get(i).getId() == contribuenteInContenzioso.get(i).getId()) {
+				listaCompleta.remove(i);
+			}
+		}
+
+		List<ContribuenteAggiuntaDTO> newList = (List<ContribuenteAggiuntaDTO>) Stream
+				.of(listaCompleta, contribuenteInContenzioso).flatMap(Collection::stream).collect(Collectors.toList());
+
+		return newList;
+	}
+	
+	@GetMapping("/reportContribuenti")
+	public List<ContribuenteAggiuntaDTO> reportContribuenti() {
+		List<ContribuenteAggiuntaDTO> contribuenti = ContribuenteAggiuntaDTO.createContribuenteDTOListFromModelList(contribuenteService.listAllElementsEager(), true);
+		
+		
+		for (ContribuenteAggiuntaDTO contribuenteItem : contribuenti) {
+			int importoCartelle = 0;
+			int conclusoEPagato = 0;
+			int inContenzioso = 0;
+			for (CartellaEsattorialeDTO cartellaItem : contribuenteItem.getCartelleEsattoriali()) {
+				importoCartelle += cartellaItem.getImporto();
+				if(cartellaItem.getStato().equals(Stato.CONCLUSA))
+					conclusoEPagato += cartellaItem.getImporto();
+				if(cartellaItem.getStato().equals(Stato.IN_CONTENZIOSO))
+					inContenzioso += cartellaItem.getImporto();
+			}
+			contribuenteItem.setInContenzioso(inContenzioso);
+			contribuenteItem.setConclusoEPagato(conclusoEPagato);
+			contribuenteItem.setImportoCartelle(importoCartelle);
+		}
+		return contribuenti;
 	}
 }

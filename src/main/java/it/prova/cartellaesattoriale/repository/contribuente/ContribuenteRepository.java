@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import it.prova.cartellaesattoriale.model.Contribuente;
+import it.prova.cartellaesattoriale.model.Stato;
 
 
 public interface ContribuenteRepository extends CrudRepository<Contribuente, Long>, CustomContribuenteRepository {
@@ -15,4 +16,6 @@ public interface ContribuenteRepository extends CrudRepository<Contribuente, Lon
 	
 	@Query("from Contribuente c left join fetch c.cartelleEsattoriali where c.id=?1")
 	Contribuente findByIdEager(Long idContribuente);
+	
+	List<Contribuente> findAllByCartelleEsattoriali_StatoLike(Stato stato);
 }

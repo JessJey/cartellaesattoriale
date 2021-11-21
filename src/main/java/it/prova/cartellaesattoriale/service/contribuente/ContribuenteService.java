@@ -3,6 +3,7 @@ package it.prova.cartellaesattoriale.service.contribuente;
 import java.util.List;
 
 import it.prova.cartellaesattoriale.model.Contribuente;
+import it.prova.cartellaesattoriale.model.Stato;
 
 
 public interface ContribuenteService {
@@ -22,4 +23,6 @@ public interface ContribuenteService {
 	void rimuovi(Contribuente contribuenteInstance);
 	
 	List<Contribuente> findByExample(Contribuente example);
+	
+	List<Contribuente> trovaPerStatoCartelle(Stato stato);
 }
